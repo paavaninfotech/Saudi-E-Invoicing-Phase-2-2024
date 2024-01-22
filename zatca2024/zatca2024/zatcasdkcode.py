@@ -82,11 +82,11 @@ def get_latest_generated_csr_file(folder_path='.'):
 def generate_csr():
             try:
                 settings=frappe.get_doc('Zatca setting')
-                csr_config_file = 'sdkcsrconfig.properties'
+                csr_config_file = '$SDK_ROOT/sdkcsrconfig.properties'
                 private_key_file = 'sdkprivatekey.pem'
                 generated_csr_file = 'sdkcsr.pem'
                 SDK_ROOT=settings.sdk_root
-                path_string=f"export SDK_ROOT={SDK_ROOT} && export FATOORA_HOME=$SDK_ROOT/Apps && export SDK_CONFIG=config.json && export PATH=$PATH:$FATOORA_HOME &&  "
+                path_string=f"export SDK_ROOT={SDK_ROOT} && export FATOORA_HOME=$SDK_ROOT/Apps && export SDK_CONFIG=$SDK_ROOT/config.json && export PATH=$PATH:$FATOORA_HOME &&  "
                 
                 if settings.select == "Simulation":
                     command_generate_csr =  path_string  + f'fatoora -sim -csr -csrConfig {csr_config_file} -privateKey {private_key_file} -generatedCsr {generated_csr_file} -pem'
