@@ -468,7 +468,7 @@ def clearance_API(uuid1,hash_value,signed_xmlfile_name,invoice_number,sales_invo
                         'accept-language': 'en',
                         'Clearance-Status': '1',
                         'Accept-Version': 'V2',
-                        'Authorization': 'Basic' + settings.basic_auth_production,
+                        'Authorization': 'Basic' + settings.basic_auth,
                         # 'Authorization': 'Basic' + settings.basic_auth,
                         
                         'Content-Type': 'application/json',
