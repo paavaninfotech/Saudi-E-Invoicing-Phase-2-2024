@@ -579,7 +579,7 @@ def attach_QR_Image_For_Clearance(xml_cleared,sales_invoice_doc):
 
 @frappe.whitelist(allow_guest=True) 
 def zatca_Call(invoice_number, compliance_type="0"):
-                    compliance_type = "1"
+                    compliance_type = "0"
                     try:    
                             # create_compliance_x509()
                             # frappe.throw("Created compliance x509 certificate")
@@ -594,7 +594,7 @@ def zatca_Call(invoice_number, compliance_type="0"):
                             customer_doc= frappe.get_doc("Customer",sales_invoice_doc.customer)
                             
                             
-                            if compliance_type == "1":
+                            if compliance_type == "0":
                                     # frappe.throw(str("here 7 " + str(compliance_type))) 
                                     if customer_doc.custom_b2c == 1:
                                         invoice = invoice_Typecode_Simplified(invoice, sales_invoice_doc)
@@ -619,7 +619,7 @@ def zatca_Call(invoice_number, compliance_type="0"):
                             # frappe.msgprint("validated and stopped it here")
                             # result,clearance_status=send_invoice_for_clearance_normal(uuid1,signed_xmlfile_name,hash_value)
                             
-                            if compliance_type == "1":
+                            if compliance_type == "0":
                                 if customer_doc.custom_b2c == 1:
                                     reporting_API(uuid1, hash_value, signed_xmlfile_name,invoice_number,sales_invoice_doc)
                                     attach_QR_Image_For_Reporting(qr_code_value,sales_invoice_doc)
