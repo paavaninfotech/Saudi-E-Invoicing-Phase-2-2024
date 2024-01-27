@@ -131,7 +131,8 @@ def get_API_url(base_url):
 def create_CSID(): 
                 try:
                     # set_cert_path()
-                    settings=frappe.get_doc('Zatca setting')     
+                    settings=frappe.get_doc('Zatca setting')
+                    zatca_res=frappe.get_doc('zatca response')
                     with open(get_latest_generated_csr_file(), "r") as f:
                         csr_contents = f.read()
                     payload = json.dumps({
@@ -146,6 +147,8 @@ def create_CSID():
                     }
                     # frappe.throw(csr_contents)
                     response = requests.request("POST", url=get_API_url(base_url="compliance"), headers=headers, data=payload)
+                    zatca_res.set("zatca_response", response)
+                    zatca_res.save(ignore_permissions=True)
                     # response.status_code = 400
                     if response.status_code == 400:
                         frappe.throw("Error: " + "OTP is not valid", response.text)
@@ -159,7 +162,7 @@ def create_CSID():
                     concatenated_value = data["binarySecurityToken"] + ":" + data["secret"]
                     encoded_value = base64.b64encode(concatenated_value.encode()).decode()
 
-                    with open(f"cert.pem", 'w') as file:   #attaching X509 certificate
+                    with open(f"/home/paavaninfotech/frappe-bench/zatca-envoice-sdk-203/Data/Certificates/cert.pem", 'w') as file:   #attaching X509 certificate
                         file.write(base64.b64decode(data["binarySecurityToken"]).decode('utf-8'))
 
                     settings.set("basic_auth", encoded_value)
