@@ -83,8 +83,8 @@ def generate_csr():
             try:
                 settings=frappe.get_doc('Zatca setting')
                 csr_config_file = '$SDK_ROOT/sdkcsrconfig.properties'
-                private_key_file = 'sdkprivatekey.pem'
-                generated_csr_file = 'sdkcsr.pem'
+                private_key_file = '$SDK_ROOT/sdkprivatekey.pem'
+                generated_csr_file = '$SDK_ROOT/sdkcsr.pem'
                 SDK_ROOT=settings.sdk_root
                 path_string=f"export SDK_ROOT={SDK_ROOT} && export FATOORA_HOME=$SDK_ROOT/Apps && export SDK_CONFIG=$SDK_ROOT/config.json && export PATH=$PATH:$FATOORA_HOME &&  "
                 
