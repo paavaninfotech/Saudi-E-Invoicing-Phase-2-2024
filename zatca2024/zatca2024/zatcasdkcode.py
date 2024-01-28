@@ -82,11 +82,11 @@ def get_latest_generated_csr_file(folder_path='.'):
 def generate_csr():
             try:
                 settings=frappe.get_doc('Zatca setting')
-                csr_config_file = '$SDK_ROOT/sdkcsrconfig.properties'
-                private_key_file = '$SDK_ROOT/sdkprivatekey.pem'
-                generated_csr_file = '$SDK_ROOT/sdkcsr.pem'
+                csr_config_file = 'sdkcsrconfig.properties'
+                private_key_file = 'sdkprivatekey.pem'
+                generated_csr_file = 'sdkcsr.pem'
                 SDK_ROOT=settings.sdk_root
-                path_string=f"export SDK_ROOT={SDK_ROOT} && export FATOORA_HOME=$SDK_ROOT/Apps && export SDK_CONFIG=$SDK_ROOT/config.json && export PATH=$PATH:$FATOORA_HOME &&  "
+                path_string=f"export SDK_ROOT={SDK_ROOT} && export FATOORA_HOME=$SDK_ROOT/Apps && export SDK_CONFIG=config.json && export PATH=$PATH:$FATOORA_HOME &&  "
                 
                 if settings.select == "Simulation":
                     command_generate_csr =  path_string  + f'fatoora -sim -csr -csrConfig {csr_config_file} -privateKey {private_key_file} -generatedCsr {generated_csr_file} -pem'
@@ -162,7 +162,7 @@ def create_CSID():
                     concatenated_value = data["binarySecurityToken"] + ":" + data["secret"]
                     encoded_value = base64.b64encode(concatenated_value.encode()).decode()
 
-                    with open(f"/home/paavaninfotech/frappe-bench/zatca-envoice-sdk-203/Data/Certificates/cert.pem", 'w') as file:   #attaching X509 certificate
+                    with open(f"cert.pem", 'w') as file:   #attaching X509 certificate
                         file.write(base64.b64decode(data["binarySecurityToken"]).decode('utf-8'))
 
                     settings.set("basic_auth", encoded_value)
@@ -179,7 +179,7 @@ def sign_invoice():
                     xmlfile_name = 'finalzatcaxml.xml'
                     signed_xmlfile_name = 'sdsign.xml'
                     SDK_ROOT= settings.sdk_root
-                    path_string=f"export SDK_ROOT={SDK_ROOT} && export FATOORA_HOME=$SDK_ROOT/Apps && export SDK_CONFIG=$SDK_ROOT/config.json && export PATH=$PATH:$FATOORA_HOME &&  "
+                    path_string=f"export SDK_ROOT={SDK_ROOT} && export FATOORA_HOME=$SDK_ROOT/Apps && export SDK_CONFIG=config.json && export PATH=$PATH:$FATOORA_HOME &&  "
                     
                     command_sign_invoice = path_string  + f'fatoora -sign -invoice {xmlfile_name} -signedInvoice {signed_xmlfile_name}'
                     # frappe.throw(command_sign_invoice)
