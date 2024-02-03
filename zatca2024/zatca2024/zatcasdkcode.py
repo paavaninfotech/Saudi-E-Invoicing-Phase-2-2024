@@ -564,6 +564,7 @@ def attach_QR_Image_For_Clearance(xml_cleared,sales_invoice_doc):
                         # frappe.throw(xml_cleared)
                         qr_code_text=qrcode_From_Clearedxml(xml_cleared)
                         sales_invoice_doc.custom_qr_text = qr_code_text
+                        sales_invoice_doc.save(ignore_permissions=True)
                         
                         # frappe.throw("qr_code_text: " + str(qr_code_text))
                         qr = pyqrcode.create(qr_code_text)
@@ -624,6 +625,7 @@ def zatca_Call(invoice_number, compliance_type="0"):
                             # frappe.msgprint("validated and stopped it here")
                             # result,clearance_status=send_invoice_for_clearance_normal(uuid1,signed_xmlfile_name,hash_value)
                             sales_invoice_doc.custom_qr_text = qr_code_value
+                            sales_invoice_doc.save(ignore_permissions=True)
                             if compliance_type == "0":
                                 if customer_doc.custom_b2c == 1:
                                     reporting_API(uuid1, hash_value, signed_xmlfile_name,invoice_number,sales_invoice_doc)
