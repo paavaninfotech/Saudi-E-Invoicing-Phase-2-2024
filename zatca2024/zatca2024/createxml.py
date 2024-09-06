@@ -296,6 +296,7 @@ def additional_Reference(invoice):
 def company_Data(invoice,sales_invoice_doc):
             try:
                 branch_doc = frappe.get_doc("Branch", sales_invoice_doc.branch)
+                company_doc = frappe.get_doc("Company", sales_invoice_doc.company)        
                 customer_doc= frappe.get_doc("Customer",sales_invoice_doc.customer)
                 cac_AccountingSupplierParty = ET.SubElement(invoice, "cac:AccountingSupplierParty")
                 cac_Party_1 = ET.SubElement(cac_AccountingSupplierParty, "cac:Party")
