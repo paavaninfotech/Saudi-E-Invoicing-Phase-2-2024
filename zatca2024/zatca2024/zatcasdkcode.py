@@ -380,9 +380,8 @@ def attach_QR_Image_For_Reporting(qr_code_value,sales_invoice_doc):
                     except Exception as e:
                         frappe.throw("Error in qr image attach for reporting api   " + str(e))   
 
-def reporting_API(uuid1,hash_value,signed_xmlfile_name,invoice_number):
+def reporting_API(uuid1,hash_value,signed_xmlfile_name,invoice_number,sales_invoice_doc):
                     try:
-                        sales_invoice_doc = frappe.get_doc("Sales Invoice", invoice_number)
                         settings = frappe.get_doc('Zatca setting')
                         payload = json.dumps({
                         "invoiceHash": hash_value,
@@ -459,9 +458,9 @@ def reporting_API(uuid1,hash_value,signed_xmlfile_name,invoice_number):
                     except Exception as e:
                         frappe.throw("Error in reporting api-1:  " + str(e) )
 
-def clearance_API(uuid1,hash_value,signed_xmlfile_name,invoice_number):
+def clearance_API(uuid1,hash_value,signed_xmlfile_name,invoice_number,sales_invoice_doc):
                     try:
-                        sales_invoice_doc = frappe.get_doc("Sales Invoice", invoice_number)
+                        # frappe.msgprint("Clearance API")
                         settings = frappe.get_doc('Zatca setting')
                         payload = json.dumps({
                         "invoiceHash": hash_value,
@@ -473,72 +472,82 @@ def clearance_API(uuid1,hash_value,signed_xmlfile_name,invoice_number):
                         'Clearance-Status': '1',
                         'Accept-Version': 'V2',
                         'Authorization': 'Basic' + settings.basic_auth_production,
+                        # 'Authorization': 'Basic' + settings.basic_auth,
+                        
                         'Content-Type': 'application/json',
                         'Cookie': 'TS0106293e=0132a679c03c628e6c49de86c0f6bb76390abb4416868d6368d6d7c05da619c8326266f5bc262b7c0c65a6863cd3b19081d64eee99' }
-
+                        
                         response = requests.request("POST", url=get_API_url(base_url="invoices/clearance/single"), headers=headers, data=payload)
-
+                        
+                        # response.status_code = 400
+                        
                         if response.status_code  in (400,405,406,409 ):
                             invoice_doc = frappe.get_doc('Sales Invoice' , invoice_number  )
                             invoice_doc.db_set('custom_uuid' , "Not Submitted" , commit=True  , update_modified=True)
                             invoice_doc.db_set('custom_zatca_status' , "Not Submitted" , commit=True  , update_modified=True)
+                            
+                           
                             frappe.throw("Error: The request you are sending to Zatca is in incorrect format. Please report to system administrator . Status code:  " + str(response.status_code) + "<br><br> " + response.text )            
-
+                        
+                        
                         if response.status_code  in (401,403,407,451 ):
                             invoice_doc = frappe.get_doc('Sales Invoice' , invoice_number  )
                             invoice_doc.db_set('custom_uuid' , "Not Submitted" , commit=True  , update_modified=True)
                             invoice_doc.db_set('custom_zatca_status' , "Not Submitted" , commit=True  , update_modified=True)
-                            frappe.throw("Error: Zatca Authentication failed. Your access token may be expired or not valid. Please contact your system administrator. Status code:  " + str(response.status_code) + "<br><br> " + response.text)            
 
+                           
+                            frappe.throw("Error: Zatca Authentication failed. Your access token may be expired or not valid. Please contact your system administrator. Status code:  " + str(response.status_code) + "<br><br> " + response.text)            
+                        
                         if response.status_code not in (200, 202):
                             invoice_doc = frappe.get_doc('Sales Invoice' , invoice_number  )
                             invoice_doc.db_set('custom_uuid' , "Not Submitted" , commit=True  , update_modified=True)
                             invoice_doc.db_set('custom_zatca_status' , "Not Submitted" , commit=True  , update_modified=True)
-                            frappe.throw("Error: Zatca server busy or not responding. Try after sometime or contact your system administrator. Status code:  " + str(response.status_code))
 
+                            
+                          
+                          
+                            
+                            frappe.throw("Error: Zatca server busy or not responding. Try after sometime or contact your system administrator. Status code:  " + str(response.status_code))
+                        
                         if response.status_code  in (200, 202):
                                 if response.status_code == 202:
                                     msg = "CLEARED WITH WARNIGS: <br> <br> Please copy the below message and send it to your system administrator to fix this warnings before next submission <br>  <br><br> "
-
+                                
                                 if response.status_code == 200:
                                     msg = "SUCCESS: <br>   <br><br> "
-
+                                
                                 msg = msg + "Status Code: " + str(response.status_code) + "<br><br> "
                                 msg = msg + "Zatca Response: " + response.text + "<br><br> "
                                 frappe.msgprint(msg)
                                 settings.pih = hash_value
                                 settings.save(ignore_permissions=True)
-
+                                
                                 invoice_doc = frappe.get_doc('Sales Invoice' , invoice_number )
                                 invoice_doc.db_set('custom_uuid' , uuid1 , commit=True  , update_modified=True)
                                 invoice_doc.db_set('custom_zatca_status' , "CLEARED" , commit=True  , update_modified=True)
-
+                                
+                               
+                                
                                 data=json.loads(response.text)
                                 base64_xml = data["clearedInvoice"] 
                                 xml_cleared= base64.b64decode(base64_xml).decode('utf-8')
-                                file = frappe.get_doc({                       
+                                file = frappe.get_doc({                       #attaching the cleared xml
                                     "doctype": "File",
                                     "file_name": "Cleared xml file" + sales_invoice_doc.name,
                                     "attached_to_doctype": sales_invoice_doc.doctype,
                                     "attached_to_name": sales_invoice_doc.name,
                                     "content": xml_cleared
+                                    
                                 })
                                 file.save(ignore_permissions=True)
-
-                                # 🔄 Enregistrement du XML dans le champ custom
-                                invoice_doc.db_set("custom_cleared_xml", xml_cleared, commit=True, update_modified=True)
-
+                                # frappe.msgprint(xml_cleared)
                                 success_Log(response.text,uuid1, invoice_number)
-                                
-                                # 🔁 On ne retourne plus la valeur si on veut utiliser enqueue
-                                # return xml_cleared
-
+                                return xml_cleared
                         else:
                                 error_Log()
                             
                     except Exception as e:
                         frappe.throw("error in clearance api:  " + str(e) )
-                        
 
 def qrcode_From_Clearedxml(xml_cleared):
                     try:
@@ -550,16 +559,10 @@ def qrcode_From_Clearedxml(xml_cleared):
                     except Exception as e:
                         frappe.throw("error in qrcode from cleared xml:  " + str(e) )
 
-def attach_QR_Image_For_Clearance(sales_invoice_doc):
+def attach_QR_Image_For_Clearance(xml_cleared,sales_invoice_doc):
                     try:
                         # frappe.throw(xml_cleared)
-                        frappe.enqueue(
-                            method="zatca2024.zatca2024.zatcasdkcode.attach_QR_Image_For_Clearance",
-                            sales_invoice_name=sales_invoice_doc.name,
-                            queue="default"
-                        )
-                        
-                        qr_code_text=qrcode_From_Clearedxml(sales_invoice_doc.custom_cleared_xml)
+                        qr_code_text=qrcode_From_Clearedxml(xml_cleared)
                         sales_invoice_doc.set('custom_qr_text', qr_code_text)
                         sales_invoice_doc.save(ignore_permissions=True)
                         
@@ -625,30 +628,12 @@ def zatca_Call(invoice_number, compliance_type="0"):
                             sales_invoice_doc.save(ignore_permissions=True)
                             if compliance_type == "0":
                                 if customer_doc.custom_b2c == 1:
-                                    #reporting_API(uuid1, hash_value, signed_xmlfile_name,invoice_number,sales_invoice_doc)
-                                    frappe.enqueue(
-                                        method="zatca2024.zatca2024.zatcasdkcode.reporting_api",
-                                        uuid1=uuid1,
-                                        hash_value=hash_value,
-                                        signed_xmlfile_name=signed_xmlfile_name,
-                                        invoice_number=invoice_number,
-                                        queue="long",
-                                        timeout=120
-                                    )
+                                    reporting_API(uuid1, hash_value, signed_xmlfile_name,invoice_number,sales_invoice_doc)
                                     attach_QR_Image_For_Reporting(qr_code_value,sales_invoice_doc)
                                 else:
                                     
-                                    #xml_cleared=clearance_API(uuid1, hash_value, signed_xmlfile_name,invoice_number)
-                                    frappe.enqueue(
-                                        method="zatca2024.zatca2024.zatcasdkcode.clearance_api",
-                                        uuid1=uuid1,
-                                        hash_value=hash_value,
-                                        signed_xmlfile_name=signed_xmlfile_name,
-                                        invoice_number=invoice_number,
-                                        queue="long",
-                                        timeout=120
-                                    )
-                                    attach_QR_Image_For_Clearance(sales_invoice_doc)
+                                    xml_cleared=clearance_API(uuid1, hash_value, signed_xmlfile_name,invoice_number,sales_invoice_doc)
+                                    attach_QR_Image_For_Clearance(xml_cleared,sales_invoice_doc)
                             else:  # if it a compliance test
                                 # frappe.msgprint("Compliance test")
                                 compliance_api_call(uuid1, hash_value, signed_xmlfile_name)
