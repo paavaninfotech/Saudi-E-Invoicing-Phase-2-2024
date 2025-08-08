@@ -553,6 +553,12 @@ def qrcode_From_Clearedxml(xml_cleared):
 def attach_QR_Image_For_Clearance(sales_invoice_doc):
                     try:
                         # frappe.throw(xml_cleared)
+                        frappe.enqueue(
+                            method="zatca2024.zatca2024.zatcasdkcode.attach_QR_Image_For_Clearance",
+                            sales_invoice_name=sales_invoice_doc.name,
+                            queue="default"
+                        )
+                        
                         qr_code_text=qrcode_From_Clearedxml(sales_invoice_doc.custom_cleared_xml)
                         sales_invoice_doc.set('custom_qr_text', qr_code_text)
                         sales_invoice_doc.save(ignore_permissions=True)
